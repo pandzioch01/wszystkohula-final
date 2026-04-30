@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Member {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  eventParticipations EventParticipant[]
+  eventChanges        EventChange[]
+
+  @@index([email])
+  @@map("members")
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?  @db.Text
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  participants EventParticipant[]
+  usedTools    EventTool[]
+  changes      EventChange[]
+
+  @@index([startDate, endDate])
+  @@index([startDate])
+  @@map("events")
+}
+
+model Tool {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  status      ToolStatus @default(AVAILABLE) // Better than free text
+  location    String?   // More specific than currentPosition
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  eventUsages EventTool[]
+
+  @@index([status])
+  @@map("tools")
+}
+
+// Junction table for many-to-many Event <-> Member
+model EventParticipant {
+  id       Int    @id @default(autoincrement())
+  eventId  Int
+  memberId Int
+  role     String @default("participant") // organizer, participant, etc.
+
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, memberId])
+  @@index([eventId])
+  @@index([memberId])
+  @@map("event_participants")
+}
+
+// Junction table for many-to-many Event <-> Tool
+model EventTool {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  toolId    Int
+  assignedAt DateTime @default(now())
+  returnedAt DateTime?
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tool  Tool  @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, toolId])
+  @@index([eventId])
+  @@index([toolId])
+  @@map("event_tools")
+}
+
+model EventChange {
+  id          Int        @id @default(autoincrement())
+  eventId     Int
+  memberId    Int
+  changeType  ChangeType
+  timestamp   DateTime   @default(now())
+  description String?    @db.Text
+
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([eventId, timestamp])
+  @@index([memberId])
+  @@map("event_changes")
+}
+
+// Enums for type safety
+enum ToolStatus {
+  AVAILABLE
+  IN_STORAGE
+  AT_EVENT
+  BORROWED
+  MAINTENANCE
+  LOST
+}
+
+enum ChangeType {
+  CREATED
+  UPDATED
+  DELETED
+  MEMBER_ADDED
+  MEMBER_REMOVED
+  TOOL_ASSIGNED
+  TOOL_RETURNED
+}
