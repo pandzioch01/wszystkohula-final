@@ -10,6 +10,9 @@ model Member {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   name      String?
+  city      String?
+  specializations String[] @db.Text
+  ownedTools String[] @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -44,6 +47,7 @@ model Tool {
   id          Int       @id @default(autoincrement())
   name        String
   description String?
+  imageUrl    String?
   status      ToolStatus @default(AVAILABLE) // Better than free text
   location    String?   // More specific than currentPosition
   createdAt   DateTime  @default(now())
