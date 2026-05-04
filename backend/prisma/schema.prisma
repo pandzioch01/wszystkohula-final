@@ -19,6 +19,7 @@ model Member {
   // Relations
   eventParticipations EventParticipant[]
   eventChanges        EventChange[]
+  borrowedTools       Tool[]             @relation("BorrowedTools")
 
   @@index([email])
   @@map("members")
@@ -44,19 +45,23 @@ model Event {
 }
 
 model Tool {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String?
-  imageUrl    String?
-  status      ToolStatus @default(AVAILABLE) // Better than free text
-  location    String?   // More specific than currentPosition
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            Int        @id @default(autoincrement())
+  name          String
+  description   String?
+  imageUrl      String?
+  status        ToolStatus @default(AVAILABLE)
+  location      String?
+  borrowedById  Int?
+  borrowedSince DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   // Relations
+  borrowedBy  Member?     @relation("BorrowedTools", fields: [borrowedById], references: [id], onDelete: SetNull)
   eventUsages EventTool[]
 
   @@index([status])
+  @@index([borrowedById])
   @@map("tools")
 }
 
@@ -65,7 +70,6 @@ model EventParticipant {
   id       Int    @id @default(autoincrement())
   eventId  Int
   memberId Int
-  role     String @default("participant") // organizer, participant, etc.
 
   event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
