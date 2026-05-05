@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const membersRouter = require('./src/routes/members.routes');
 const toolsRouter = require('./src/routes/tools.routes');
+const eventsRouter = require('./src/routes/events.routes');
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.json());
 
 app.use('/api/members', membersRouter);
 app.use('/api/tools', toolsRouter);
+app.use('/api/events', eventsRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {
