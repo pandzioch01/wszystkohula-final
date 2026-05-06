@@ -7,6 +7,8 @@ async function getEventDetails(eventId) {
       id: true,
       title: true,
       description: true,
+      clientName: true,
+      firmsNames: true,
       startDate: true,
       endDate: true,
       participants: {
@@ -30,6 +32,8 @@ async function getEventDetails(eventId) {
     id: event.id,
     title: event.title,
     description: event.description,
+    clientName: event.clientName,
+    firmsNames: event.firmsNames,
     startDate: event.startDate,
     endDate: event.endDate,
     participants: event.participants.map((p) => ({

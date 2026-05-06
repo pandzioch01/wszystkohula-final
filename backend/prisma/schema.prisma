@@ -28,6 +28,8 @@ model Member {
 model Event {
   id          Int      @id @default(autoincrement())
   title       String
+  clientName      String?
+  firmsNames    String[]    @db.Text
   description String?  @db.Text
   startDate   DateTime
   endDate     DateTime
