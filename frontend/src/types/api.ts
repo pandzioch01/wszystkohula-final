@@ -22,6 +22,8 @@ export interface EventCreatePayload {
   firmsNames?: string[];
   startDate: string;
   endDate: string;
+  // Who performed the action; backend writes an EventChange audit row when present.
+  actorMemberId?: number;
 }
 
 export type EventUpdatePayload = Partial<EventCreatePayload>;
@@ -58,11 +60,22 @@ export interface MemberSearchResult {
   specializations: string[];
 }
 
+export interface MemberProfile {
+  id: number;
+  name: string | null;
+  city: string | null;
+  specializations: string[];
+  ownedTools: string[];
+  borrowedTools: { name: string; status: ToolStatus }[];
+  nextEvent: { id: number; title: string; startDate: string } | null;
+}
+
 export interface MemberNotification {
   id: number;
   message: string;
   changeType: ChangeType;
-  eventId: number;
+  // null when the event has been deleted (the SetNull cascade applies).
+  eventId: number | null;
   eventTitle: string;
   memberId: number;
   memberName: string | null;
@@ -82,6 +95,7 @@ export interface ToolDetails {
   name: string;
   status: ToolStatus;
   imageUrl: string | null;
+  owner: string | null;
   borrowedBy: { id: number; name: string | null } | null;
   borrowedSince: string | null;
   nearestEvent: { id: number; title: string; startDate: string } | null;

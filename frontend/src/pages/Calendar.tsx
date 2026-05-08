@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import {
   useEvents,
+  useEvent,
   useCreateEvent,
   useUpdateEvent,
   useDeleteEvent,
 } from '../hooks/useEvents';
 import type { EventListItem } from '../types/api';
+import { CURRENT_MEMBER_ID } from '../lib/auth';
 
 interface FormState {
   title: string;
@@ -42,6 +44,29 @@ export default function Calendar() {
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState<FormState>(emptyForm);
 
+  // Fetch full details when editing so description/clientName/firmsNames pre-fill.
+  const editingQuery = useEvent(editingId ?? undefined);
+
+  // Adjust form state during render when fetched data arrives for a new id.
+  // The guard (loadedForId !== editingId) prevents infinite loops.
+  const [loadedForId, setLoadedForId] = useState<number | null>(null);
+  if (
+    editingId !== null &&
+    editingQuery.data &&
+    loadedForId !== editingId
+  ) {
+    const d = editingQuery.data;
+    setLoadedForId(editingId);
+    setForm({
+      title: d.title,
+      description: d.description ?? '',
+      clientName: d.clientName ?? '',
+      firmsNames: d.firmsNames.join(', '),
+      startDate: toLocalInput(d.startDate),
+      endDate: toLocalInput(d.endDate),
+    });
+  }
+
   function openCreate() {
     setEditingId(null);
     setForm(emptyForm);
@@ -50,14 +75,7 @@ export default function Calendar() {
 
   function openEdit(e: EventListItem) {
     setEditingId(e.id);
-    setForm({
-      title: e.title,
-      description: '',
-      clientName: '',
-      firmsNames: '',
-      startDate: toLocalInput(e.startDate),
-      endDate: toLocalInput(e.endDate),
-    });
+    setForm(emptyForm);
     setFormOpen(true);
   }
 
@@ -80,6 +98,7 @@ export default function Calendar() {
         .filter(Boolean),
       startDate: new Date(form.startDate).toISOString(),
       endDate: new Date(form.endDate).toISOString(),
+      actorMemberId: CURRENT_MEMBER_ID,
     };
 
     if (editingId === null) {
@@ -92,7 +111,7 @@ export default function Calendar() {
 
   async function handleDelete(id: number) {
     if (!confirm('Delete this event?')) return;
-    await deleteMut.mutateAsync(id);
+    await deleteMut.mutateAsync({ id, actorMemberId: CURRENT_MEMBER_ID });
   }
 
   return (
@@ -116,6 +135,12 @@ export default function Calendar() {
             {editingId === null ? 'New event' : `Edit event #${editingId}`}
           </h2>
 
+          {editingId !== null && editingQuery.isLoading && (
+            <p className="text-sm text-gray-500">Loading event…</p>
+          )}
+
+          {(editingId === null || editingQuery.data) && (
+          <>
           <div>
             <label className="block text-sm">Title</label>
             <input
@@ -177,11 +202,17 @@ export default function Calendar() {
               />
             </div>
           </div>
+          </>
+          )}
 
           <div className="flex gap-2">
             <button
               type="submit"
-              disabled={createMut.isPending || updateMut.isPending}
+              disabled={
+                createMut.isPending ||
+                updateMut.isPending ||
+                (editingId !== null && editingQuery.isLoading)
+              }
               className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-3 py-1.5 rounded"
             >
               {editingId === null ? 'Create' : 'Save'}

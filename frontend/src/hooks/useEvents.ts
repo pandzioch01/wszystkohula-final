@@ -29,6 +29,9 @@ export function useCreateEvent() {
     mutationFn: (payload: EventCreatePayload) => createEvent(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['events'] });
+      // The mutation also wrote an EventChange audit row, so the
+      // notifications feed needs to refresh.
+      qc.invalidateQueries({ queryKey: ['members'] });
     },
   });
 }
@@ -41,6 +44,7 @@ export function useUpdateEvent() {
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({ queryKey: ['events'] });
       qc.invalidateQueries({ queryKey: ['events', vars.id] });
+      qc.invalidateQueries({ queryKey: ['members'] });
     },
   });
 }
@@ -48,9 +52,12 @@ export function useUpdateEvent() {
 export function useDeleteEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => deleteEvent(id),
+    mutationFn: ({ id, actorMemberId }: { id: number; actorMemberId?: number }) =>
+      deleteEvent(id, actorMemberId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['events'] });
+      // The mutation also wrote a DELETED audit row, so refresh notifications.
+      qc.invalidateQueries({ queryKey: ['members'] });
     },
   });
 }

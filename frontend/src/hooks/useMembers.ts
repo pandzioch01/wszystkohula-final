@@ -1,10 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
-import { searchMembers, fetchMemberNotifications } from '../api/members';
+import {
+  searchMembers,
+  fetchMember,
+  fetchMemberNotifications,
+} from '../api/members';
 
 export function useMembers(q?: string) {
   return useQuery({
     queryKey: ['members', { q }],
     queryFn: () => searchMembers(q),
+  });
+}
+
+export function useMember(id: number | undefined) {
+  return useQuery({
+    queryKey: ['members', id],
+    queryFn: () => fetchMember(id!),
+    enabled: id !== undefined,
   });
 }
 

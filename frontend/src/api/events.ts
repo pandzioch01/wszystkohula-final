@@ -26,6 +26,8 @@ export async function updateEvent(id: number, payload: EventUpdatePayload): Prom
   return data;
 }
 
-export async function deleteEvent(id: number): Promise<void> {
-  await api.delete(`/api/events/${id}`);
+export async function deleteEvent(id: number, actorMemberId?: number): Promise<void> {
+  await api.delete(`/api/events/${id}`, {
+    params: actorMemberId !== undefined ? { actorMemberId } : undefined,
+  });
 }

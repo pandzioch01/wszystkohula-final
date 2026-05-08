@@ -19,6 +19,7 @@ async function getMemberChanges(memberId) {
       changeType: true,
       timestamp: true,
       description: true,
+      eventTitleSnapshot: true,
       event: { select: { id: true, title: true } },
       member: { select: { id: true, name: true } },
     },
@@ -27,14 +28,18 @@ async function getMemberChanges(memberId) {
   return changes.map((c) => {
     const personName = c.member.name ?? 'Unknown member';
     const action = ACTION_LABELS[c.changeType] ?? 'changed event';
-    const message = `${personName} ${action} "${c.event.title}"`;
+    // Prefer the live event title; fall back to the snapshot taken at write time
+    // (used after the event is deleted, since SetNull nulls c.event but the
+    // snapshot column persists).
+    const eventTitle = c.event?.title ?? c.eventTitleSnapshot ?? '(deleted event)';
+    const message = `${personName} ${action} "${eventTitle}"`;
 
     return {
       id: c.id,
       message,
       changeType: c.changeType,
-      eventId: c.event.id,
-      eventTitle: c.event.title,
+      eventId: c.event?.id ?? null,
+      eventTitle,
       memberId: c.member.id,
       memberName: c.member.name,
       description: c.description,

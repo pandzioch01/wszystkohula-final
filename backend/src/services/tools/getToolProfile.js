@@ -8,6 +8,8 @@ async function getToolProfile(toolId) {
       name: true,
       status: true,
       imageUrl: true,
+      owner: true,
+      borrowedById: true,
       borrowedSince: true,
       borrowedBy: { select: { id: true, name: true } },
     },
@@ -40,8 +42,11 @@ async function getToolProfile(toolId) {
   return {
     id: tool.id,
     name: tool.name,
-    status: tool.status,
+    // Derive a consistent status: if a borrower is set, the tool is BORROWED
+    // regardless of the stored enum (defensive against drift).
+    status: tool.borrowedById !== null ? 'BORROWED' : tool.status,
     imageUrl: tool.imageUrl,
+    owner: tool.owner,
     borrowedBy: tool.borrowedBy,
     borrowedSince: tool.borrowedSince,
     nearestEvent: nearestUsage?.event ?? null,

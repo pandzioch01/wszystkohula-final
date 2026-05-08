@@ -71,6 +71,7 @@ async function main() {
   ]);
 
   // --- Tools ---
+  // owner: name of the person OR company that owns the tool. null = org-owned.
   const [
     drill, ladder, projector, speaker, generator,
     tent, microphone, extensionCord, toolbox, firstAid,
@@ -80,6 +81,7 @@ async function main() {
         name: 'Wiertarka Bosch',
         description: 'Akumulatorowa, 18V',
         imageUrl: 'https://placehold.co/200x200?text=Wiertarka',
+        owner: 'Marek Lewandowski',
         status: 'AVAILABLE',
         location: 'Magazyn A, półka 3',
       },
@@ -89,6 +91,7 @@ async function main() {
         name: 'Drabina aluminiowa',
         description: '4-stopniowa, składana',
         imageUrl: 'https://placehold.co/200x200?text=Drabina',
+        owner: null,
         status: 'AVAILABLE',
         location: 'Magazyn A',
       },
@@ -98,6 +101,7 @@ async function main() {
         name: 'Projektor Epson',
         description: 'Full HD, 3500 lumenów',
         imageUrl: 'https://placehold.co/200x200?text=Projektor',
+        owner: 'AudioPro Sp. z o.o.',
         status: 'AT_EVENT',
         location: 'Sala konferencyjna',
       },
@@ -107,6 +111,7 @@ async function main() {
         name: 'Głośnik JBL EON',
         description: 'Bezprzewodowy, 1000W',
         imageUrl: 'https://placehold.co/200x200?text=Glosnik',
+        owner: 'Anna Kowalska',
         status: 'BORROWED',
         location: 'U Marka',
         borrowedById: marek.id,
@@ -118,6 +123,7 @@ async function main() {
         name: 'Generator prądu Honda',
         description: '2.2 kVA, benzynowy',
         imageUrl: 'https://placehold.co/200x200?text=Generator',
+        owner: 'EnergyRent Sp. z o.o.',
         status: 'IN_STORAGE',
         location: 'Magazyn B',
       },
@@ -127,6 +133,7 @@ async function main() {
         name: 'Namiot eventowy 5x5m',
         description: 'Biały, z bokami',
         imageUrl: 'https://placehold.co/200x200?text=Namiot',
+        owner: null,
         status: 'AT_EVENT',
         location: 'Festyn miejski',
       },
@@ -136,6 +143,7 @@ async function main() {
         name: 'Mikrofon Shure SM58',
         description: 'Dynamiczny, przewodowy',
         imageUrl: 'https://placehold.co/200x200?text=Mikrofon',
+        owner: 'Piotr Nowak',
         status: 'AVAILABLE',
         location: 'Magazyn A',
       },
@@ -145,6 +153,7 @@ async function main() {
         name: 'Przedłużacz 25m',
         description: 'Bębnowy, 4 gniazda',
         imageUrl: 'https://placehold.co/200x200?text=Przedluzacz',
+        owner: null,
         status: 'AVAILABLE',
         location: 'Magazyn A',
       },
@@ -154,6 +163,7 @@ async function main() {
         name: 'Skrzynka narzędziowa',
         description: 'Komplet podstawowy',
         imageUrl: 'https://placehold.co/200x200?text=Skrzynka',
+        owner: 'Tomek Zieliński',
         status: 'MAINTENANCE',
         location: 'Warsztat',
       },
@@ -163,6 +173,7 @@ async function main() {
         name: 'Apteczka pierwszej pomocy',
         description: 'Pełna, ważna do 2027',
         imageUrl: 'https://placehold.co/200x200?text=Apteczka',
+        owner: 'BHP Service Sp. z o.o.',
         status: 'LOST',
         location: 'Nieznana',
       },
@@ -275,25 +286,26 @@ async function main() {
     ],
   });
 
-  // --- EventChanges (audit log; member id=1 = anna gets several so notifications page has data) ---
+  // --- EventChanges (audit log; member id=1 = anna gets several so notifications page has data)
+  // eventTitleSnapshot is set so the title persists if the event is ever deleted.
   await prisma.eventChange.createMany({
     data: [
-      { eventId: pastEvent.id, memberId: anna.id, changeType: 'CREATED', timestamp: daysAgo(45), description: 'Wydarzenie utworzone' },
-      { eventId: pastEvent.id, memberId: anna.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(40), description: 'Dodano Piotra Nowaka' },
-      { eventId: pastEvent.id, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(31), description: 'Przypisano namiot eventowy' },
-      { eventId: pastEvent.id, memberId: anna.id, changeType: 'TOOL_RETURNED', timestamp: daysAgo(28), description: 'Zwrócono namiot eventowy' },
+      { eventId: pastEvent.id, eventTitleSnapshot: pastEvent.title, memberId: anna.id, changeType: 'CREATED', timestamp: daysAgo(45), description: 'Wydarzenie utworzone' },
+      { eventId: pastEvent.id, eventTitleSnapshot: pastEvent.title, memberId: anna.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(40), description: 'Dodano Piotra Nowaka' },
+      { eventId: pastEvent.id, eventTitleSnapshot: pastEvent.title, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(31), description: 'Przypisano namiot eventowy' },
+      { eventId: pastEvent.id, eventTitleSnapshot: pastEvent.title, memberId: anna.id, changeType: 'TOOL_RETURNED', timestamp: daysAgo(28), description: 'Zwrócono namiot eventowy' },
 
-      { eventId: recentEvent.id, memberId: marek.id, changeType: 'CREATED', timestamp: daysAgo(20), description: 'Wydarzenie utworzone' },
-      { eventId: recentEvent.id, memberId: marek.id, changeType: 'UPDATED', timestamp: daysAgo(15), description: 'Zaktualizowano opis' },
-      { eventId: recentEvent.id, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(8), description: 'Przypisano projektor' },
+      { eventId: recentEvent.id, eventTitleSnapshot: recentEvent.title, memberId: marek.id, changeType: 'CREATED', timestamp: daysAgo(20), description: 'Wydarzenie utworzone' },
+      { eventId: recentEvent.id, eventTitleSnapshot: recentEvent.title, memberId: marek.id, changeType: 'UPDATED', timestamp: daysAgo(15), description: 'Zaktualizowano opis' },
+      { eventId: recentEvent.id, eventTitleSnapshot: recentEvent.title, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(8), description: 'Przypisano projektor' },
 
-      { eventId: ongoingEvent.id, memberId: kasia.id, changeType: 'CREATED', timestamp: daysAgo(60), description: 'Wydarzenie utworzone' },
-      { eventId: ongoingEvent.id, memberId: piotr.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(30), description: 'Dodano współorganizatora' },
-      { eventId: ongoingEvent.id, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(1), description: 'Przypisano projektor i namiot' },
-      { eventId: ongoingEvent.id, memberId: anna.id, changeType: 'UPDATED', timestamp: daysAgo(1), description: 'Doprecyzowano harmonogram' },
+      { eventId: ongoingEvent.id, eventTitleSnapshot: ongoingEvent.title, memberId: kasia.id, changeType: 'CREATED', timestamp: daysAgo(60), description: 'Wydarzenie utworzone' },
+      { eventId: ongoingEvent.id, eventTitleSnapshot: ongoingEvent.title, memberId: piotr.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(30), description: 'Dodano współorganizatora' },
+      { eventId: ongoingEvent.id, eventTitleSnapshot: ongoingEvent.title, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(1), description: 'Przypisano projektor i namiot' },
+      { eventId: ongoingEvent.id, eventTitleSnapshot: ongoingEvent.title, memberId: anna.id, changeType: 'UPDATED', timestamp: daysAgo(1), description: 'Doprecyzowano harmonogram' },
 
-      { eventId: upcomingEvent.id, memberId: tomek.id, changeType: 'CREATED', timestamp: daysAgo(10), description: 'Wydarzenie utworzone' },
-      { eventId: upcomingEvent.id, memberId: anna.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(5), description: 'Dodano siebie do wydarzenia' },
+      { eventId: upcomingEvent.id, eventTitleSnapshot: upcomingEvent.title, memberId: tomek.id, changeType: 'CREATED', timestamp: daysAgo(10), description: 'Wydarzenie utworzone' },
+      { eventId: upcomingEvent.id, eventTitleSnapshot: upcomingEvent.title, memberId: anna.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(5), description: 'Dodano siebie do wydarzenia' },
     ],
   });
 

@@ -1,7 +1,5 @@
 import { useMemberNotifications } from '../hooks/useMembers';
-
-// TODO: replace with the logged-in member's id from auth context
-const CURRENT_MEMBER_ID = 1;
+import { CURRENT_MEMBER_ID } from '../lib/auth';
 
 export default function Notifications() {
   const { data, isLoading, error } = useMemberNotifications(CURRENT_MEMBER_ID);

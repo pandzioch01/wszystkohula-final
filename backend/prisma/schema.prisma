@@ -51,6 +51,7 @@ model Tool {
   name          String
   description   String?
   imageUrl      String?
+  owner         String?
   status        ToolStatus @default(AVAILABLE)
   location      String?
   borrowedById  Int?
@@ -100,15 +101,16 @@ model EventTool {
 }
 
 model EventChange {
-  id          Int        @id @default(autoincrement())
-  eventId     Int
-  memberId    Int
-  changeType  ChangeType
-  timestamp   DateTime   @default(now())
-  description String?    @db.Text
+  id                 Int        @id @default(autoincrement())
+  eventId            Int?
+  eventTitleSnapshot String?
+  memberId           Int
+  changeType         ChangeType
+  timestamp          DateTime   @default(now())
+  description        String?    @db.Text
 
-  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  event  Event?  @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  member Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   @@index([eventId, timestamp])
   @@index([memberId])
