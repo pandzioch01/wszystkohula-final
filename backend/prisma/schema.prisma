@@ -52,7 +52,7 @@ model Tool {
   description   String?
   imageUrl      String?
   owner         String?
-  status        ToolStatus @default(AVAILABLE)
+  status        ToolStatus @default(IN_STORAGE)
   location      String?
   borrowedById  Int?
   borrowedSince DateTime?
@@ -119,7 +119,6 @@ model EventChange {
 
 // Enums for type safety
 enum ToolStatus {
-  AVAILABLE
   IN_STORAGE
   AT_EVENT
   BORROWED

@@ -1,9 +1,15 @@
 import { api } from '../lib/api';
-import type { ToolSearchResult, ToolDetails } from '../types/api';
+import type { ToolSearchResult, ToolDetails, ToolStatus } from '../types/api';
 
-export async function searchTools(q?: string): Promise<ToolSearchResult[]> {
+export async function searchTools(
+  q?: string,
+  status?: ToolStatus,
+): Promise<ToolSearchResult[]> {
+  const params: Record<string, string> = {};
+  if (q) params.q = q;
+  if (status) params.status = status;
   const { data } = await api.get<ToolSearchResult[]>('/api/tools', {
-    params: q ? { q } : undefined,
+    params: Object.keys(params).length > 0 ? params : undefined,
   });
   return data;
 }

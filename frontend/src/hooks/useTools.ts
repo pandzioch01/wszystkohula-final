@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { searchTools, fetchTool } from '../api/tools';
+import type { ToolStatus } from '../types/api';
 
-export function useTools(q?: string) {
+export function useTools(q?: string, status?: ToolStatus) {
   return useQuery({
-    queryKey: ['tools', { q }],
-    queryFn: () => searchTools(q),
+    queryKey: ['tools', { q, status }],
+    queryFn: () => searchTools(q, status),
   });
 }
 

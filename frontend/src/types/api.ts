@@ -1,5 +1,4 @@
 export type ToolStatus =
-  | 'AVAILABLE'
   | 'IN_STORAGE'
   | 'AT_EVENT'
   | 'BORROWED'
@@ -98,5 +97,5 @@ export interface ToolDetails {
   owner: string | null;
   borrowedBy: { id: number; name: string | null } | null;
   borrowedSince: string | null;
-  nearestEvent: { id: number; title: string; startDate: string } | null;
+  nearestEvent: { id: number; title: string; startDate: string; endDate: string } | null;
 }

@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install deps first for better layer caching
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
 
 # Prisma needs the schema to generate the client
 COPY prisma ./prisma

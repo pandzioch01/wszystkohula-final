@@ -86,7 +86,7 @@ export default function Team() {
         error={error}
         searchValue={q}
         onSearchChange={setQ}
-        searchPlaceholder="Search by name…"
+        searchPlaceholder="Szukaj po imieniu lub specjalizacji…"
         getItemId={(m) => m.id}
         renderItem={(m) => (
           <span className="font-medium">{m.name ?? '(no name)'}</span>

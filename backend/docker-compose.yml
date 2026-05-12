@@ -34,7 +34,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     container_name: eventura-backend
     restart: unless-stopped
     ports:
