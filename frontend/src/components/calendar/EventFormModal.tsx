@@ -44,6 +44,7 @@ export function EventFormModal({ mode, onClose }: EventFormModalProps) {
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [selectedToolIds, setSelectedToolIds] = useState<Set<number>>(new Set());
+  const [toolSearch, setToolSearch] = useState('');
 
   const editingQuery = useEvent(editingId ?? undefined);
   // Pull the full tool list so the user can pick from existing items.
@@ -213,7 +214,16 @@ export function EventFormModal({ mode, onClose }: EventFormModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm mb-1">Sprzęt</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-sm">Sprzęt</label>
+                <input
+                  type="search"
+                  placeholder="Szukaj…"
+                  value={toolSearch}
+                  onChange={(e) => setToolSearch(e.target.value)}
+                  className="border rounded px-2 py-0.5 text-sm w-40"
+                />
+              </div>
               {toolsQuery.isLoading && (
                 <p className="text-sm text-gray-500">Loading tools…</p>
               )}
@@ -221,41 +231,53 @@ export function EventFormModal({ mode, onClose }: EventFormModalProps) {
                 <p className="text-sm text-red-500">Nie udało się załadować sprzętu.</p>
               )}
               {toolsQuery.data && (
-                <div className="border rounded p-2 max-h-48 overflow-y-auto space-y-1">
-                  {toolsQuery.data.map((tool) => {
-                    const isLost = tool.status === 'LOST';
-                    const isMaintenance = tool.status === 'MAINTENANCE';
-                    const isChecked = selectedToolIds.has(tool.id);
-                    return (
-                      <label
-                        key={tool.id}
-                        className={`flex items-center gap-2 px-2 py-1 rounded ${
-                          isLost
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'cursor-pointer hover:bg-gray-50'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          disabled={isLost}
-                          onChange={() => toggleTool(tool)}
-                        />
-                        <span className="text-sm flex-1">{tool.name}</span>
-                        <span
-                          className={`text-xs ${
+                <div className="border rounded p-2 max-h-48 overflow-y-auto space-y-1 min-h-48 flex flex-col">
+                  {(() => {
+                    const filtered = toolsQuery.data.filter((t) =>
+                      t.name.toLowerCase().includes(toolSearch.toLowerCase())
+                    );
+                    if (filtered.length === 0) {
+                      return (
+                        <p className="text-sm text-gray-400 flex items-center justify-center h-full">
+                          Brak pasujących narzędzi
+                        </p>
+                      );
+                    }
+                    return filtered.map((tool) => {
+                      const isLost = tool.status === 'LOST';
+                      const isMaintenance = tool.status === 'MAINTENANCE';
+                      const isChecked = selectedToolIds.has(tool.id);
+                      return (
+                        <label
+                          key={tool.id}
+                          className={`flex items-center gap-2 px-2 py-1 rounded ${
                             isLost
-                              ? 'text-gray-400'
-                              : isMaintenance
-                                ? 'text-amber-600'
-                                : 'text-gray-500'
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'cursor-pointer hover:bg-gray-50'
                           }`}
                         >
-                          {polishStatus(tool.status)}
-                        </span>
-                      </label>
-                    );
-                  })}
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            disabled={isLost}
+                            onChange={() => toggleTool(tool)}
+                          />
+                          <span className="text-sm flex-1">{tool.name}</span>
+                          <span
+                            className={`text-xs ${
+                              isLost
+                                ? 'text-gray-400'
+                                : isMaintenance
+                                  ? 'text-amber-600'
+                                  : 'text-gray-500'
+                            }`}
+                          >
+                            {polishStatus(tool.status)}
+                          </span>
+                        </label>
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>

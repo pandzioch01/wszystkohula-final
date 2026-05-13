@@ -39,7 +39,7 @@ export function Modal({ open, onClose, title, children, size = 'max-w-lg' }: Mod
       onClick={onClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl w-full ${size} max-h-[90vh] flex flex-col`}
+        className={`bg-white rounded-lg shadow-xl w-full ${size} flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {title !== undefined && (
@@ -55,8 +55,8 @@ export function Modal({ open, onClose, title, children, size = 'max-w-lg' }: Mod
             </button>
           </div>
         )}
-        {/* Only the body scrolls — header stays pinned, the page underneath stays still. */}
-        <div className="p-5 overflow-y-auto">{children}</div>
+        {/* Body content — no internal scrolling */}
+        <div className="p-5">{children}</div>
       </div>
     </div>
   );

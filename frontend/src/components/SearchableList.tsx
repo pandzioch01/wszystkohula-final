@@ -72,25 +72,27 @@ export function SearchableList<T>({
           <p className="text-red-500">Failed to load.</p>
         )}
 
-        <ul className="space-y-2">
-          {items?.map((item) => {
-            const id = getItemId(item);
-            const isSelected = id === selectedId;
-            return (
-              <li
-                key={id}
-                onClick={() => setSelectedId(id)}
-                className={`border rounded p-3 cursor-pointer transition-colors ${
-                  isSelected
-                    ? 'bg-blue-50 border-blue-400'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                {renderItem(item, isSelected)}
-              </li>
-            );
-          })}
-        </ul>
+        <div className="overflow-y-auto max-h-[calc(100vh-14rem)]">
+          <ul className="space-y-2">
+            {items?.map((item) => {
+              const id = getItemId(item);
+              const isSelected = id === selectedId;
+              return (
+                <li
+                  key={id}
+                  onClick={() => setSelectedId(id)}
+                  className={`border rounded p-3 cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'bg-blue-50 border-blue-400'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  {renderItem(item, isSelected)}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
 
         {!isLoading && items && items.length === 0 && (
           <p className="text-gray-500 mt-2">{emptyMessage}</p>
