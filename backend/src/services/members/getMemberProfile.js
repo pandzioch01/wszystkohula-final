@@ -1,6 +1,8 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 
-async function getMemberProfile(memberId) {
+// Optional `prisma` mirrors the sibling services:
+// production callers omit it and get the real singleton; tests pass a mock.
+async function getMemberProfile(memberId, prisma = defaultPrisma) {
   const member = await prisma.member.findUnique({
     where: { id: memberId },
     select: {

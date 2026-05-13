@@ -1,6 +1,8 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 
-async function searchMembers({ query, limit = 50 }) {
+// Optional `prisma` mirrors the sibling services:
+// production callers omit it and get the real singleton; tests pass a mock.
+async function searchMembers({ query, limit = 50 }, prisma = defaultPrisma) {
   // Match on name (case-insensitive substring) OR on a specialization
   // element. Prisma's array `has` filter is exact-match per element, so the
   // user types e.g. "Akustyka" in full to match the spec; partial name

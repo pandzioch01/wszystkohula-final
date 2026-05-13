@@ -1,4 +1,4 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 
 const ACTION_LABELS = {
   CREATED: 'created event',
@@ -10,7 +10,9 @@ const ACTION_LABELS = {
   TOOL_RETURNED: 'returned a tool from event',
 };
 
-async function getMemberChanges(memberId) {
+// Optional `prisma` mirrors the sibling services:
+// production callers omit it and get the real singleton; tests pass a mock.
+async function getMemberChanges(memberId, prisma = defaultPrisma) {
   const changes = await prisma.eventChange.findMany({
     where: { memberId },
     orderBy: { timestamp: 'desc' },
