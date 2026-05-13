@@ -25,16 +25,14 @@ async function getMemberProfile(memberId) {
     },
   });
 
-  const borrowedAssignments = await prisma.eventTool.findMany({
-    where: {
-      returnedAt: null,
-      event: { participants: { some: { memberId } } },
-    },
-    select: {
-      assignedAt: true,
-      tool: { select: { id: true, name: true, status: true } },
-      event: { select: { id: true, title: true } },
-    },
+  // Tools personally borrowed by this member. `Tool.borrowedById` is the
+  // single source of truth — each tool has at most one borrower, so unlike
+  // the old eventTool-via-participants query this can't return duplicates
+  // shared with other event participants.
+  const borrowedTools = await prisma.tool.findMany({
+    where: { borrowedById: memberId },
+    select: { name: true, status: true },
+    orderBy: { name: 'asc' },
   });
 
   return {
@@ -43,10 +41,7 @@ async function getMemberProfile(memberId) {
     city: member.city,
     specializations: member.specializations,
     ownedTools: member.ownedTools,
-    borrowedTools: borrowedAssignments.map((a) => ({
-      name: a.tool.name,
-      status: a.tool.status,
-    })),
+    borrowedTools,
     nextEvent: nextParticipation?.event ?? null,
   };
 }

@@ -63,6 +63,19 @@ function validateEventBody(body, { partial }) {
     }
   }
 
+  // toolIds (optional, array of positive integers)
+  if (body.toolIds !== undefined) {
+    if (
+      !Array.isArray(body.toolIds) ||
+      body.toolIds.some((n) => !Number.isInteger(n) || n <= 0)
+    ) {
+      errors.push('toolIds must be an array of positive integers');
+    } else {
+      // De-duplicate so a tool isn't assigned twice in one call.
+      parsed.toolIds = [...new Set(body.toolIds)];
+    }
+  }
+
   // startDate
   if (body.startDate !== undefined) {
     const d = parseDate(body.startDate);

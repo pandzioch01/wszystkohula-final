@@ -1,6 +1,8 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 
-async function createEvent(data, actorMemberId) {
+// Optional `prisma` mirrors the sibling services (getEventDetails, getEventsInRange):
+// production callers omit it and get the real singleton; tests pass a mock.
+async function createEvent(data, actorMemberId, prisma = defaultPrisma) {
   const event = await prisma.event.create({
     data: {
       title: data.title,
@@ -9,6 +11,10 @@ async function createEvent(data, actorMemberId) {
       firmsNames: data.firmsNames ?? [],
       startDate: data.startDate,
       endDate: data.endDate,
+      // Optional bulk tool assignment in the same INSERT statement.
+      usedTools: data.toolIds && data.toolIds.length > 0
+        ? { create: data.toolIds.map((toolId) => ({ toolId })) }
+        : undefined,
     },
     select: {
       id: true,
@@ -21,8 +27,14 @@ async function createEvent(data, actorMemberId) {
     },
   });
 
-  // Best-effort audit log. If it fails (e.g. invalid actorMemberId), don't
-  // roll back the event creation — the audit is supplementary, not critical.
+  // TODO (post-auth): when the login/register system is in place, walk through
+  // `data.toolIds` and for each tool whose `borrowedById` is set, send a
+  // notification to that member that the tool they're currently holding has
+  // been assigned to event `event.title` (dates: startDate → endDate) by
+  // `actorMemberId`. The borrower can then either deliver it themselves or
+  // hand it back to the org.
+
+  // Best-effort audit log.
   if (actorMemberId !== undefined) {
     try {
       await prisma.eventChange.create({

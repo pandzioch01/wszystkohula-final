@@ -1,6 +1,8 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 
-async function updateEvent(id, data, actorMemberId) {
+// Optional `prisma` mirrors the sibling services (getEventDetails, getEventsInRange):
+// production callers omit it and get the real singleton; tests pass a mock.
+async function updateEvent(id, data, actorMemberId, prisma = defaultPrisma) {
   // Build a partial update — only include keys that were explicitly provided
   // so PATCH semantics work (omitting a field leaves it untouched).
   const update = {};
@@ -25,8 +27,26 @@ async function updateEvent(id, data, actorMemberId) {
     },
   });
 
-  // Best-effort audit log. If it fails (e.g. invalid actorMemberId), don't
-  // roll back the update — the audit is supplementary, not critical.
+  // Tool assignments — replace the set of unreturned assignments with what
+  // the client sent. Returned (historical) assignments are left untouched so
+  // we don't rewrite history.
+  if (data.toolIds !== undefined) {
+    await prisma.eventTool.deleteMany({
+      where: { eventId: id, returnedAt: null },
+    });
+    if (data.toolIds.length > 0) {
+      await prisma.eventTool.createMany({
+        data: data.toolIds.map((toolId) => ({ eventId: id, toolId })),
+      });
+    }
+
+    // TODO (post-auth): when the login/register system is in place, compare
+    // the new toolIds against the previous assignments and notify the current
+    // borrower (Tool.borrowedById) of any newly-added tool that their tool
+    // is being assigned to event "${event.title}" by ${actorMemberId}.
+  }
+
+  // Best-effort audit log.
   if (actorMemberId !== undefined) {
     try {
       const fieldNames = Object.keys(update).join(', ');

@@ -1,6 +1,8 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 
-async function getEventsInRange({ start, end, limit = 500 }) {
+// `prisma` is optional — production callers omit it and get the real singleton
+// via the default; tests pass a hand-rolled mock so they don't need the DB.
+async function getEventsInRange({ start, end, limit = 500 }, prisma = defaultPrisma) {
   const where = {};
 
   // Event overlaps the window if startDate < end AND endDate >= start.

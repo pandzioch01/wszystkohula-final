@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Modal } from '../Modal';
 import { useEvent, useCreateEvent, useUpdateEvent } from '../../hooks/useEvents';
+import { useTools } from '../../hooks/useTools';
+import type { ToolSearchResult } from '../../types/api';
 
 interface EventFormModalProps {
   /** null = closed; number = edit that id; 'create' = new event */
@@ -41,7 +43,11 @@ export function EventFormModal({ mode, onClose }: EventFormModalProps) {
   const updateMut = useUpdateEvent();
 
   const [form, setForm] = useState<FormState>(emptyForm);
+  const [selectedToolIds, setSelectedToolIds] = useState<Set<number>>(new Set());
+
   const editingQuery = useEvent(editingId ?? undefined);
+  // Pull the full tool list so the user can pick from existing items.
+  const toolsQuery = useTools();
 
   // Adjust state during render when fetched data arrives for a new id (or
   // when switching out of edit mode). The guards prevent infinite loops.
@@ -57,14 +63,54 @@ export function EventFormModal({ mode, onClose }: EventFormModalProps) {
       startDate: toLocalInput(d.startDate),
       endDate: toLocalInput(d.endDate),
     });
+    setSelectedToolIds(new Set(d.tools.map((t) => t.id)));
   }
   if (isCreate && loadedForId !== null) {
     setLoadedForId(null);
     setForm(emptyForm);
+    setSelectedToolIds(new Set());
   }
 
   function close() {
     onClose();
+  }
+  
+  function polishStatus(status: string) {
+    switch (status) {
+      case 'IN_STORAGE':
+        return 'W magazynie';
+      case 'AT_EVENT':
+        return 'Na evencie';
+      case 'BORROWED':
+        return 'Wypożyczony';
+      case 'MAINTENANCE':
+        return 'Na serwisie';
+      case 'LOST':
+        return 'Zagubiony';
+      default:
+        return status;
+    }
+  }
+  function toggleTool(tool: ToolSearchResult) {
+    // LOST tools can't be assigned at all.
+    if (tool.status === 'LOST') return;
+
+    setSelectedToolIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(tool.id)) {
+        next.delete(tool.id);
+        return next;
+      }
+      // MAINTENANCE — confirm before adding.
+      if (tool.status === 'MAINTENANCE') {
+        const ok = window.confirm(
+          `Narzędzie "${tool.name}" jest w serwisie. Czy na pewno chcesz je przypisać do eventu?`,
+        );
+        if (!ok) return prev;
+      }
+      next.add(tool.id);
+      return next;
+    });
   }
 
   async function handleSubmit(e: { preventDefault: () => void }) {
@@ -80,6 +126,7 @@ export function EventFormModal({ mode, onClose }: EventFormModalProps) {
         .filter(Boolean),
       startDate: new Date(form.startDate).toISOString(),
       endDate: new Date(form.endDate).toISOString(),
+      toolIds: Array.from(selectedToolIds),
     };
 
     if (editingId === null) {
@@ -163,6 +210,54 @@ export function EventFormModal({ mode, onClose }: EventFormModalProps) {
                   className="border rounded p-2 w-full"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm mb-1">Sprzęt</label>
+              {toolsQuery.isLoading && (
+                <p className="text-sm text-gray-500">Loading tools…</p>
+              )}
+              {toolsQuery.error && (
+                <p className="text-sm text-red-500">Nie udało się załadować sprzętu.</p>
+              )}
+              {toolsQuery.data && (
+                <div className="border rounded p-2 max-h-48 overflow-y-auto space-y-1">
+                  {toolsQuery.data.map((tool) => {
+                    const isLost = tool.status === 'LOST';
+                    const isMaintenance = tool.status === 'MAINTENANCE';
+                    const isChecked = selectedToolIds.has(tool.id);
+                    return (
+                      <label
+                        key={tool.id}
+                        className={`flex items-center gap-2 px-2 py-1 rounded ${
+                          isLost
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'cursor-pointer hover:bg-gray-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          disabled={isLost}
+                          onChange={() => toggleTool(tool)}
+                        />
+                        <span className="text-sm flex-1">{tool.name}</span>
+                        <span
+                          className={`text-xs ${
+                            isLost
+                              ? 'text-gray-400'
+                              : isMaintenance
+                                ? 'text-amber-600'
+                                : 'text-gray-500'
+                          }`}
+                        >
+                          {polishStatus(tool.status)}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </>
         )}

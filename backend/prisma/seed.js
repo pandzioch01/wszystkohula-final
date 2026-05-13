@@ -6,306 +6,371 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  // Truncate all tables and reset identity columns so Member id=1 etc.
-  // is deterministic across re-runs (the Notifications page hardcodes id=1).
+  // Wipe every table and reset identity sequences. Member id=1 (Magdalena
+  // below) is what the frontend hardcodes for the logged-in user.
   await prisma.$executeRawUnsafe(
     'TRUNCATE TABLE event_changes, event_tools, event_participants, events, tools, members RESTART IDENTITY CASCADE'
   );
 
   // --- Members ---
-  const [anna, piotr, kasia, marek, ola, tomek] = await Promise.all([
+  const [magda, jakub, patrycja, bartosz, natalia, adrian, weronika] = await Promise.all([
     prisma.member.create({
       data: {
-        email: 'anna.kowalska@example.com',
-        name: 'Anna Kowalska',
-        city: 'Poznań',
-        specializations: ['Akustyka', 'Realizacja dźwięku'],
-        ownedTools: ['Mikrofon Sennheiser e935', 'Słuchawki AKG K712'],
-      },
-    }),
-    prisma.member.create({
-      data: {
-        email: 'piotr.nowak@example.com',
-        name: 'Piotr Nowak',
+        email: 'magdalena.pawlak@example.com',
+        name: 'Magdalena Pawlak',
         city: 'Warszawa',
-        specializations: ['Oświetlenie sceniczne', 'Programowanie konsol'],
-        ownedTools: ['Laptop MacBook Pro'],
+        specializations: ['Reżyseria produkcji', 'Koordynacja zespołów'],
+        ownedTools: ['Laptop MacBook Air M3', 'Tablet graficzny Wacom'],
       },
     }),
     prisma.member.create({
       data: {
-        email: 'kasia.wisniewska@example.com',
-        name: 'Kasia Wiśniewska',
+        email: 'jakub.wojcik@example.com',
+        name: 'Jakub Wójcik',
         city: 'Kraków',
-        specializations: ['Reżyseria', 'Scenografia'],
-        ownedTools: [],
+        specializations: ['Akustyka', 'Mastering live'],
+        ownedTools: ['Słuchawki referencyjne Beyerdynamic DT 1990 Pro'],
       },
     }),
     prisma.member.create({
       data: {
-        email: 'marek.lewandowski@example.com',
-        name: 'Marek Lewandowski',
-        city: 'Wrocław',
-        specializations: ['Logistyka', 'Transport sprzętu'],
-        ownedTools: ['Wózek transportowy'],
-      },
-    }),
-    prisma.member.create({
-      data: {
-        email: 'ola.dabrowska@example.com',
-        name: 'Ola Dąbrowska',
+        email: 'patrycja.kaminska@example.com',
+        name: 'Patrycja Kamińska',
         city: 'Gdańsk',
-        specializations: ['Catering', 'Koordynacja gastronomii'],
+        specializations: ['Catering', 'Obsługa VIP'],
         ownedTools: [],
       },
     }),
     prisma.member.create({
       data: {
-        email: 'tomek.zielinski@example.com',
-        name: 'Tomek Zieliński',
+        email: 'bartosz.krawczyk@example.com',
+        name: 'Bartosz Krawczyk',
         city: 'Poznań',
-        specializations: ['Wideo', 'Streaming', 'Montaż'],
-        ownedTools: ['Kamera Sony FX3', 'Statyw Manfrotto'],
+        specializations: ['Oświetlenie sceniczne', 'Programowanie konsol GrandMA'],
+        ownedTools: ['Miernik luksów Sekonic'],
+      },
+    }),
+    prisma.member.create({
+      data: {
+        email: 'natalia.mazur@example.com',
+        name: 'Natalia Mazur',
+        city: 'Wrocław',
+        specializations: ['Operator kamery', 'Multicam'],
+        ownedTools: ['Dron DJI Mavic 3 Pro'],
+      },
+    }),
+    prisma.member.create({
+      data: {
+        email: 'adrian.gorski@example.com',
+        name: 'Adrian Górski',
+        city: 'Łódź',
+        specializations: ['Logistyka', 'Transport sprzętu', 'BHP'],
+        ownedTools: ['Telefon służbowy iPhone 15'],
+      },
+    }),
+    prisma.member.create({
+      data: {
+        email: 'weronika.sikora@example.com',
+        name: 'Weronika Sikora',
+        city: 'Szczecin',
+        specializations: ['Realizacja wideo', 'Streaming live', 'Postprodukcja'],
+        ownedTools: ['MacBook Pro 16" M3', 'Mikrofon Rode NTG5'],
       },
     }),
   ]);
 
   // --- Tools ---
-  // owner: name of the person OR company that owns the tool. null = org-owned.
+  // owner: null = org-owned; otherwise a person name OR company name.
   const [
-    drill, ladder, projector, speaker, generator,
-    tent, microphone, extensionCord, toolbox, firstAid,
+    konsola, reflektor, statyw, subwoofer, mikrofony,
+    djStation, plotki, kontener, paletowy, drabina,
+    walizka, apteczka,
   ] = await Promise.all([
     prisma.tool.create({
       data: {
-        name: 'Wiertarka Bosch',
-        description: 'Akumulatorowa, 18V',
-        imageUrl: 'https://placehold.co/200x200?text=Wiertarka',
-        owner: 'Marek Lewandowski',
-        status: 'IN_STORAGE',
-        location: 'Magazyn A, półka 3',
-      },
-    }),
-    prisma.tool.create({
-      data: {
-        name: 'Drabina aluminiowa',
-        description: '4-stopniowa, składana',
-        imageUrl: 'https://placehold.co/200x200?text=Drabina',
+        name: 'Konsola Yamaha MGP24X',
+        description: '24-kanałowa, analogowa, z efektami',
+        imageUrl: 'https://placehold.co/200x200?text=Konsola',
         owner: null,
         status: 'IN_STORAGE',
-        location: 'Magazyn A',
+        location: 'Magazyn główny, regał A1',
       },
     }),
     prisma.tool.create({
       data: {
-        name: 'Projektor Epson',
-        description: 'Full HD, 3500 lumenów',
-        imageUrl: 'https://placehold.co/200x200?text=Projektor',
-        owner: 'AudioPro Sp. z o.o.',
+        name: 'Reflektor LED RGB Cameo Studio PAR',
+        description: '64 diody, DMX, bezprzewodowy',
+        imageUrl: 'https://placehold.co/200x200?text=Reflektor',
+        owner: 'Bartosz Krawczyk',
+        status: 'IN_STORAGE',
+        location: 'Magazyn światła',
+      },
+    }),
+    prisma.tool.create({
+      data: {
+        name: 'Statyw oświetleniowy 4m',
+        description: 'Wytrzymały, do 50 kg',
+        imageUrl: 'https://placehold.co/200x200?text=Statyw',
+        owner: null,
         status: 'AT_EVENT',
-        location: 'Sala konferencyjna',
+        location: 'Festiwal Wrocław Beats',
       },
     }),
     prisma.tool.create({
       data: {
-        name: 'Głośnik JBL EON',
-        description: 'Bezprzewodowy, 1000W',
-        imageUrl: 'https://placehold.co/200x200?text=Glosnik',
-        owner: 'Anna Kowalska',
+        name: 'Subwoofer JBL VRX918SP',
+        description: 'Aktywny, 18 cali, 1500W',
+        imageUrl: 'https://placehold.co/200x200?text=Subwoofer',
+        owner: null,
+        status: 'AT_EVENT',
+        location: 'Festiwal Wrocław Beats',
+      },
+    }),
+    prisma.tool.create({
+      data: {
+        name: 'Zestaw mikrofonów Sennheiser EW100',
+        description: '4 nadajniki, 1 odbiornik, headset + lavalier',
+        imageUrl: 'https://placehold.co/200x200?text=Mikrofony',
+        owner: 'Jakub Wójcik',
         status: 'BORROWED',
-        location: 'U Marka',
-        borrowedById: marek.id,
-        borrowedSince: new Date(Date.now() - 14 * 86400000),
+        location: 'U Magdaleny',
+        borrowedById: magda.id,
+        borrowedSince: new Date(Date.now() - 5 * 86400000),
       },
     }),
     prisma.tool.create({
       data: {
-        name: 'Generator prądu Honda',
-        description: '2.2 kVA, benzynowy',
-        imageUrl: 'https://placehold.co/200x200?text=Generator',
-        owner: 'EnergyRent Sp. z o.o.',
+        name: 'Stolik DJ Pioneer DDJ-1000',
+        description: 'Kontroler 4-deckowy z mikserem',
+        imageUrl: 'https://placehold.co/200x200?text=DJ',
+        owner: 'Soundtech Sp. z o.o.',
         status: 'IN_STORAGE',
-        location: 'Magazyn B',
+        location: 'Magazyn główny, regał B2',
       },
     }),
     prisma.tool.create({
       data: {
-        name: 'Namiot eventowy 5x5m',
-        description: 'Biały, z bokami',
-        imageUrl: 'https://placehold.co/200x200?text=Namiot',
-        owner: null,
-        status: 'AT_EVENT',
-        location: 'Festyn miejski',
-      },
-    }),
-    prisma.tool.create({
-      data: {
-        name: 'Mikrofon Shure SM58',
-        description: 'Dynamiczny, przewodowy',
-        imageUrl: 'https://placehold.co/200x200?text=Mikrofon',
-        owner: 'Piotr Nowak',
-        status: 'IN_STORAGE',
-        location: 'Magazyn A',
-      },
-    }),
-    prisma.tool.create({
-      data: {
-        name: 'Przedłużacz 25m',
-        description: 'Bębnowy, 4 gniazda',
-        imageUrl: 'https://placehold.co/200x200?text=Przedluzacz',
+        name: 'Płotki ochronne (10 szt.)',
+        description: 'Metalowe, czarne, ze stopkami',
+        imageUrl: 'https://placehold.co/200x200?text=Plotki',
         owner: null,
         status: 'IN_STORAGE',
-        location: 'Magazyn A',
+        location: 'Magazyn zewnętrzny',
       },
     }),
     prisma.tool.create({
       data: {
-        name: 'Skrzynka narzędziowa',
-        description: 'Komplet podstawowy',
-        imageUrl: 'https://placehold.co/200x200?text=Skrzynka',
-        owner: 'Tomek Zieliński',
+        name: 'Kontener transportowy',
+        description: 'Aluminiowy, 1.2x0.8m, z kółkami',
+        imageUrl: 'https://placehold.co/200x200?text=Kontener',
+        owner: 'TransLog Sp. z o.o.',
+        status: 'IN_STORAGE',
+        location: 'Magazyn główny, strefa C',
+      },
+    }),
+    prisma.tool.create({
+      data: {
+        name: 'Wózek paletowy',
+        description: 'Ręczny, udźwig 2000 kg',
+        imageUrl: 'https://placehold.co/200x200?text=Wozek',
+        owner: null,
         status: 'MAINTENANCE',
-        location: 'Warsztat',
+        location: 'Serwis – wymiana łożysk',
       },
     }),
     prisma.tool.create({
       data: {
-        name: 'Apteczka pierwszej pomocy',
-        description: 'Pełna, ważna do 2027',
+        name: 'Drabina rozkładana 6m',
+        description: 'Aluminiowa, trzyczęściowa',
+        imageUrl: 'https://placehold.co/200x200?text=Drabina',
+        owner: 'Adrian Górski',
+        status: 'IN_STORAGE',
+        location: 'Magazyn główny',
+      },
+    }),
+    prisma.tool.create({
+      data: {
+        name: 'Walizka narzędziowa elektryka',
+        description: 'Komplet podstawowy + multimetr',
+        imageUrl: 'https://placehold.co/200x200?text=Walizka',
+        owner: null,
+        status: 'LOST',
+        location: 'Nieznana — ostatnio Premiera Tech Mobile X',
+      },
+    }),
+    prisma.tool.create({
+      data: {
+        name: 'Apteczka eventowa',
+        description: 'Pełna, ważna do 2028',
         imageUrl: 'https://placehold.co/200x200?text=Apteczka',
         owner: 'BHP Service Sp. z o.o.',
-        status: 'LOST',
-        location: 'Nieznana',
+        status: 'IN_STORAGE',
+        location: 'Magazyn główny, przy wejściu',
       },
     }),
   ]);
 
-  // --- Events (past, ongoing, future) ---
+  // --- Events ---
   const now = new Date();
   const daysAgo = (n) => new Date(now.getTime() - n * 86400000);
   const daysFromNow = (n) => new Date(now.getTime() + n * 86400000);
 
-  const pastEvent = await prisma.event.create({
+  const targi = await prisma.event.create({
     data: {
-      title: 'Festyn rodzinny w parku',
-      description: 'Coroczny festyn z atrakcjami dla dzieci, muzyką i poczęstunkiem.',
-      clientName: 'Urząd Miasta Poznania',
-      firmsNames: ['AudioPro', 'Catering Plus'],
-      startDate: daysAgo(30),
-      endDate: daysAgo(29),
+      title: 'Targi Budowlane 2026',
+      description: 'Coroczne targi branży budowlanej — stoiska, prezentacje, networking.',
+      clientName: 'Polska Izba Budownictwa',
+      firmsNames: ['AudioPro', 'BudExpo'],
+      startDate: daysAgo(60),
+      endDate: daysAgo(58),
     },
   });
 
-  const recentEvent = await prisma.event.create({
+  const premiera = await prisma.event.create({
     data: {
-      title: 'Warsztaty programowania',
-      description: 'Trzydniowe warsztaty React i TypeScript.',
-      clientName: 'Tech Foundation Sp. z o.o.',
-      firmsNames: ['CodeAcademy', 'Drukarnia XYZ'],
-      startDate: daysAgo(7),
-      endDate: daysAgo(5),
+      title: 'Premiera produktu Tech Mobile X',
+      description: 'Wieczorna gala premierowa nowego smartfona.',
+      clientName: 'Tech Mobile',
+      firmsNames: ['VisualWorks', 'Catering Premium'],
+      startDate: daysAgo(14),
+      endDate: daysAgo(13),
     },
   });
 
-  const ongoingEvent = await prisma.event.create({
+  const festiwal = await prisma.event.create({
     data: {
-      title: 'Konferencja Tech Summit 2026',
-      description: 'Konferencja branżowa, 3 dni prelekcji i networkingu.',
-      clientName: 'Tech Summit Sp. z o.o.',
-      firmsNames: ['AudioPro', 'LightWorks', 'Catering Plus'],
+      title: 'Festiwal Wrocław Beats',
+      description: 'Trzydniowy festiwal muzyki elektronicznej. 3 sceny, 20+ artystów.',
+      clientName: 'Stowarzyszenie Wrocław Beats',
+      firmsNames: ['SoundMaster', 'StageDesign', 'Catering Premium'],
       startDate: daysAgo(1),
-      endDate: daysFromNow(2),
+      endDate: daysFromNow(3),
     },
   });
 
-  const upcomingEvent = await prisma.event.create({
+  const networking = await prisma.event.create({
     data: {
-      title: 'Koncert charytatywny',
-      description: 'Wydarzenie zbierające środki na lokalną fundację.',
-      clientName: 'Fundacja Pomocna Dłoń',
+      title: 'Spotkanie networkingowe IT',
+      description: 'Half-day event dla startupów i inwestorów.',
+      clientName: 'IT Połączeni Foundation',
+      firmsNames: ['TechVenue'],
+      startDate: daysFromNow(7),
+      endDate: daysFromNow(7),
+    },
+  });
+
+  const wesele = await prisma.event.create({
+    data: {
+      title: 'Wesele Anna i Jan',
+      description: 'Wesele plenerowe, 120 gości, oprawa DJ + zespół.',
+      clientName: 'Anna i Jan',
+      firmsNames: ['Catering Premium', 'FloralArt'],
+      startDate: daysFromNow(30),
+      endDate: daysFromNow(30),
+    },
+  });
+
+  const gala = await prisma.event.create({
+    data: {
+      title: 'Gala charytatywna 2026',
+      description: 'Aukcja charytatywna, gala wieczorowa, transmisja online.',
+      clientName: 'Fundacja Promyk Nadziei',
       firmsNames: ['AudioPro', 'StageDesign'],
-      startDate: daysFromNow(14),
-      endDate: daysFromNow(14),
-    },
-  });
-
-  const farFutureEvent = await prisma.event.create({
-    data: {
-      title: 'Piknik integracyjny',
-      description: 'Coroczny piknik dla członków i ich rodzin.',
-      clientName: null,
-      firmsNames: [],
-      startDate: daysFromNow(60),
-      endDate: daysFromNow(60),
+      startDate: daysFromNow(90),
+      endDate: daysFromNow(90),
     },
   });
 
   // --- EventParticipants ---
   await prisma.eventParticipant.createMany({
     data: [
-      { eventId: pastEvent.id, memberId: anna.id },
-      { eventId: pastEvent.id, memberId: piotr.id },
-      { eventId: pastEvent.id, memberId: kasia.id },
+      // Targi
+      { eventId: targi.id, memberId: magda.id },
+      { eventId: targi.id, memberId: adrian.id },
+      { eventId: targi.id, memberId: bartosz.id },
 
-      { eventId: recentEvent.id, memberId: marek.id },
-      { eventId: recentEvent.id, memberId: ola.id },
-      { eventId: recentEvent.id, memberId: tomek.id },
-      { eventId: recentEvent.id, memberId: anna.id },
+      // Premiera
+      { eventId: premiera.id, memberId: magda.id },
+      { eventId: premiera.id, memberId: natalia.id },
+      { eventId: premiera.id, memberId: weronika.id },
 
-      { eventId: ongoingEvent.id, memberId: kasia.id },
-      { eventId: ongoingEvent.id, memberId: piotr.id },
-      { eventId: ongoingEvent.id, memberId: ola.id },
-      { eventId: ongoingEvent.id, memberId: anna.id },
+      // Festiwal (ongoing)
+      { eventId: festiwal.id, memberId: jakub.id },
+      { eventId: festiwal.id, memberId: bartosz.id },
+      { eventId: festiwal.id, memberId: magda.id },
+      { eventId: festiwal.id, memberId: adrian.id },
+      { eventId: festiwal.id, memberId: natalia.id },
 
-      { eventId: upcomingEvent.id, memberId: tomek.id },
-      { eventId: upcomingEvent.id, memberId: marek.id },
-      { eventId: upcomingEvent.id, memberId: anna.id },
+      // Networking
+      { eventId: networking.id, memberId: patrycja.id },
+      { eventId: networking.id, memberId: magda.id },
 
-      { eventId: farFutureEvent.id, memberId: anna.id },
+      // Wesele
+      { eventId: wesele.id, memberId: patrycja.id },
+      { eventId: wesele.id, memberId: magda.id },
+      { eventId: wesele.id, memberId: adrian.id },
+
+      // Gala
+      { eventId: gala.id, memberId: magda.id },
+      { eventId: gala.id, memberId: jakub.id },
+      { eventId: gala.id, memberId: natalia.id },
     ],
   });
 
   // --- EventTools ---
   await prisma.eventTool.createMany({
     data: [
-      // Past — returned
-      { eventId: pastEvent.id, toolId: tent.id, assignedAt: daysAgo(31), returnedAt: daysAgo(28) },
-      { eventId: pastEvent.id, toolId: speaker.id, assignedAt: daysAgo(31), returnedAt: daysAgo(28) },
-      { eventId: pastEvent.id, toolId: extensionCord.id, assignedAt: daysAgo(31), returnedAt: daysAgo(28) },
+      // Targi (past, returned)
+      { eventId: targi.id, toolId: konsola.id, assignedAt: daysAgo(61), returnedAt: daysAgo(57) },
+      { eventId: targi.id, toolId: statyw.id, assignedAt: daysAgo(61), returnedAt: daysAgo(57) },
 
-      // Recent — returned
-      { eventId: recentEvent.id, toolId: projector.id, assignedAt: daysAgo(8), returnedAt: daysAgo(4) },
-      { eventId: recentEvent.id, toolId: microphone.id, assignedAt: daysAgo(8), returnedAt: daysAgo(4) },
+      // Premiera (past, returned)
+      { eventId: premiera.id, toolId: subwoofer.id, assignedAt: daysAgo(15), returnedAt: daysAgo(12) },
 
-      // Ongoing — still out
-      { eventId: ongoingEvent.id, toolId: projector.id, assignedAt: daysAgo(1), returnedAt: null },
-      { eventId: ongoingEvent.id, toolId: tent.id, assignedAt: daysAgo(1), returnedAt: null },
+      // Festiwal (ongoing, still out)
+      { eventId: festiwal.id, toolId: statyw.id, assignedAt: daysAgo(2), returnedAt: null },
+      { eventId: festiwal.id, toolId: subwoofer.id, assignedAt: daysAgo(2), returnedAt: null },
 
-      // Upcoming — pre-assigned
-      { eventId: upcomingEvent.id, toolId: speaker.id, assignedAt: daysFromNow(13), returnedAt: null },
+      // Wesele (pre-assigned)
+      { eventId: wesele.id, toolId: konsola.id, assignedAt: daysFromNow(29), returnedAt: null },
+
+      // Gala (pre-assigned, far future)
+      { eventId: gala.id, toolId: konsola.id, assignedAt: daysFromNow(89), returnedAt: null },
     ],
   });
 
-  // --- EventChanges (audit log; member id=1 = anna gets several so notifications page has data)
-  // eventTitleSnapshot is set so the title persists if the event is ever deleted.
+  // --- EventChanges (audit log) ---
+  // Magdalena (id=1) is the hardcoded logged-in user, so she gets the most
+  // entries so the Notifications page has rich data on first load.
   await prisma.eventChange.createMany({
     data: [
-      { eventId: pastEvent.id, eventTitleSnapshot: pastEvent.title, memberId: anna.id, changeType: 'CREATED', timestamp: daysAgo(45), description: 'Wydarzenie utworzone' },
-      { eventId: pastEvent.id, eventTitleSnapshot: pastEvent.title, memberId: anna.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(40), description: 'Dodano Piotra Nowaka' },
-      { eventId: pastEvent.id, eventTitleSnapshot: pastEvent.title, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(31), description: 'Przypisano namiot eventowy' },
-      { eventId: pastEvent.id, eventTitleSnapshot: pastEvent.title, memberId: anna.id, changeType: 'TOOL_RETURNED', timestamp: daysAgo(28), description: 'Zwrócono namiot eventowy' },
+      // Targi
+      { eventId: targi.id, eventTitleSnapshot: targi.title, memberId: magda.id, changeType: 'CREATED', timestamp: daysAgo(80), description: 'Wydarzenie utworzone' },
+      { eventId: targi.id, eventTitleSnapshot: targi.title, memberId: magda.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(75), description: 'Dodano Adriana i Bartosza' },
+      { eventId: targi.id, eventTitleSnapshot: targi.title, memberId: magda.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(61), description: 'Przypisano konsolę i statyw' },
+      { eventId: targi.id, eventTitleSnapshot: targi.title, memberId: adrian.id, changeType: 'TOOL_RETURNED', timestamp: daysAgo(57), description: 'Zwrócono cały sprzęt' },
 
-      { eventId: recentEvent.id, eventTitleSnapshot: recentEvent.title, memberId: marek.id, changeType: 'CREATED', timestamp: daysAgo(20), description: 'Wydarzenie utworzone' },
-      { eventId: recentEvent.id, eventTitleSnapshot: recentEvent.title, memberId: marek.id, changeType: 'UPDATED', timestamp: daysAgo(15), description: 'Zaktualizowano opis' },
-      { eventId: recentEvent.id, eventTitleSnapshot: recentEvent.title, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(8), description: 'Przypisano projektor' },
+      // Premiera
+      { eventId: premiera.id, eventTitleSnapshot: premiera.title, memberId: magda.id, changeType: 'CREATED', timestamp: daysAgo(35), description: 'Wydarzenie utworzone' },
+      { eventId: premiera.id, eventTitleSnapshot: premiera.title, memberId: magda.id, changeType: 'UPDATED', timestamp: daysAgo(20), description: 'Zaktualizowano lokalizację' },
+      { eventId: premiera.id, eventTitleSnapshot: premiera.title, memberId: weronika.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(15), description: 'Przypisano subwoofer' },
 
-      { eventId: ongoingEvent.id, eventTitleSnapshot: ongoingEvent.title, memberId: kasia.id, changeType: 'CREATED', timestamp: daysAgo(60), description: 'Wydarzenie utworzone' },
-      { eventId: ongoingEvent.id, eventTitleSnapshot: ongoingEvent.title, memberId: piotr.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(30), description: 'Dodano współorganizatora' },
-      { eventId: ongoingEvent.id, eventTitleSnapshot: ongoingEvent.title, memberId: anna.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(1), description: 'Przypisano projektor i namiot' },
-      { eventId: ongoingEvent.id, eventTitleSnapshot: ongoingEvent.title, memberId: anna.id, changeType: 'UPDATED', timestamp: daysAgo(1), description: 'Doprecyzowano harmonogram' },
+      // Festiwal
+      { eventId: festiwal.id, eventTitleSnapshot: festiwal.title, memberId: jakub.id, changeType: 'CREATED', timestamp: daysAgo(90), description: 'Wydarzenie utworzone' },
+      { eventId: festiwal.id, eventTitleSnapshot: festiwal.title, memberId: magda.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(45), description: 'Dodano siebie do projektu' },
+      { eventId: festiwal.id, eventTitleSnapshot: festiwal.title, memberId: magda.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(2), description: 'Przypisano statyw i subwoofer' },
+      { eventId: festiwal.id, eventTitleSnapshot: festiwal.title, memberId: magda.id, changeType: 'UPDATED', timestamp: daysAgo(1), description: 'Zaktualizowano harmonogram' },
 
-      { eventId: upcomingEvent.id, eventTitleSnapshot: upcomingEvent.title, memberId: tomek.id, changeType: 'CREATED', timestamp: daysAgo(10), description: 'Wydarzenie utworzone' },
-      { eventId: upcomingEvent.id, eventTitleSnapshot: upcomingEvent.title, memberId: anna.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(5), description: 'Dodano siebie do wydarzenia' },
+      // Networking
+      { eventId: networking.id, eventTitleSnapshot: networking.title, memberId: patrycja.id, changeType: 'CREATED', timestamp: daysAgo(20), description: 'Wydarzenie utworzone' },
+      { eventId: networking.id, eventTitleSnapshot: networking.title, memberId: magda.id, changeType: 'MEMBER_ADDED', timestamp: daysAgo(10), description: 'Dodano siebie do wydarzenia' },
+
+      // Wesele
+      { eventId: wesele.id, eventTitleSnapshot: wesele.title, memberId: magda.id, changeType: 'CREATED', timestamp: daysAgo(15), description: 'Wydarzenie utworzone' },
+      { eventId: wesele.id, eventTitleSnapshot: wesele.title, memberId: magda.id, changeType: 'TOOL_ASSIGNED', timestamp: daysAgo(3), description: 'Wstępnie zarezerwowano konsolę' },
+
+      // Gala
+      { eventId: gala.id, eventTitleSnapshot: gala.title, memberId: jakub.id, changeType: 'CREATED', timestamp: daysAgo(5), description: 'Wydarzenie utworzone' },
     ],
   });
 

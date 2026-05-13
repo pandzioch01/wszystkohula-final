@@ -16,6 +16,23 @@ export function EventDetailsModal({
 }: EventDetailsModalProps) {
   const { data, isLoading, error } = useEvent(eventId ?? undefined);
 
+    function polishStatus(status: string) {
+    switch (status) {
+      case 'IN_STORAGE':
+        return '— Obecnie w magazynie';
+      case 'AT_EVENT':
+        return '— Obecnie na evencie';
+      case 'BORROWED':
+        return '— Obecnie wypożyczony';
+      case 'MAINTENANCE':
+        return '— Obecnie na serwisie';
+      case 'LOST':
+        return '— Obecnie zagubione';
+      default:
+        return status;
+    }
+  }
+
   return (
     <Modal open={eventId !== null} onClose={onClose} title="Event">
       {isLoading && <p className="text-sm text-gray-500">Loading…</p>}
@@ -79,7 +96,7 @@ export function EventDetailsModal({
                 {data.tools.map((t) => (
                   <li key={t.id}>
                     {t.name}{' '}
-                    <span className="text-gray-500">— {t.status}</span>
+                    <span className="text-gray-500">{polishStatus(t.status)}</span>
                   </li>
                 ))}
               </ul>

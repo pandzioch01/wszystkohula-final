@@ -20,19 +20,30 @@ export function Modal({ open, onClose, title, children, size = 'max-w-lg' }: Mod
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
+  // Lock body scroll while the modal is open — the modal itself scrolls if
+  // its content overflows, but the underlying page should not move.
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   if (!open) return null;
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-8 bg-black/40 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
       onClick={onClose}
     >
       <div
-        className={`bg-white rounded-lg shadow-xl w-full ${size} my-8`}
+        className={`bg-white rounded-lg shadow-xl w-full ${size} max-h-[90vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {title !== undefined && (
-          <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+          <div className="flex items-center justify-between border-b border-gray-200 px-5 py-3 shrink-0">
             <h2 className="text-lg font-semibold">{title}</h2>
             <button
               type="button"
@@ -44,7 +55,8 @@ export function Modal({ open, onClose, title, children, size = 'max-w-lg' }: Mod
             </button>
           </div>
         )}
-        <div className="p-5">{children}</div>
+        {/* Only the body scrolls — header stays pinned, the page underneath stays still. */}
+        <div className="p-5 overflow-y-auto">{children}</div>
       </div>
     </div>
   );

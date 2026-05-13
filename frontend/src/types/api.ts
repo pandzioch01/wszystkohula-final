@@ -21,6 +21,9 @@ export interface EventCreatePayload {
   firmsNames?: string[];
   startDate: string;
   endDate: string;
+  // IDs of tools to assign to this event. Omitting means "don't change tool
+  // assignments"; passing [] means "remove all unreturned assignments".
+  toolIds?: number[];
   // Who performed the action; backend writes an EventChange audit row when present.
   actorMemberId?: number;
 }

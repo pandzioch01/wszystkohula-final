@@ -11,6 +11,23 @@ function MemberDetail({ id }: { id: number }) {
   if (error) return <p className="text-red-500">Failed to load member.</p>;
   if (!data) return null;
 
+  function polishStatus(status: string) {
+    switch (status) {
+      case 'IN_STORAGE':
+        return '— W magazynie';
+      case 'AT_EVENT':
+        return '— Na evencie';
+      case 'BORROWED':
+        return '';
+      case 'MAINTENANCE':
+        return '— Serwis';
+      case 'LOST':
+        return '— Zagubione';
+      default:
+        return status;
+    }
+  }
+
   return (
     <div className="border rounded p-4 space-y-3">
       <h2 className="text-xl font-semibold">{data.name ?? '(no name)'}</h2>
@@ -49,7 +66,7 @@ function MemberDetail({ id }: { id: number }) {
           <ul className="list-disc list-inside text-sm text-gray-700">
             {data.borrowedTools.map((t) => (
               <li key={t.name}>
-                {t.name} <span className="text-gray-500">— {t.status}</span>
+                {t.name} <span className="text-gray-500"> {polishStatus(t.status)}</span>
               </li>
             ))}
           </ul>

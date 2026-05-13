@@ -1,6 +1,8 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 
-async function deleteEvent(id, actorMemberId) {
+// Optional `prisma` mirrors the sibling services (getEventDetails, getEventsInRange):
+// production callers omit it and get the real singleton; tests pass a mock.
+async function deleteEvent(id, actorMemberId, prisma = defaultPrisma) {
   // Capture the title before deletion so the audit description is meaningful.
   // Prisma's delete returns the row that was deleted, which is enough here.
   // EventParticipant, EventTool, and EventChange.event use cascade/SetNull,
