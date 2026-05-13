@@ -1,7 +1,9 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 const { deriveToolStatus } = require('./deriveToolStatus');
 
-async function getToolProfile(toolId) {
+// Optional `prisma` mirrors the sibling services:
+// production callers omit it and get the real singleton; tests pass a mock.
+async function getToolProfile(toolId, prisma = defaultPrisma) {
   const tool = await prisma.tool.findUnique({
     where: { id: toolId },
     select: {

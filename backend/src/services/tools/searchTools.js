@@ -1,7 +1,9 @@
-const prisma = require('../../config/prisma');
+const defaultPrisma = require('../../config/prisma');
 const { deriveToolStatus } = require('./deriveToolStatus');
 
-async function searchTools({ query, status, limit = 50 }) {
+// Optional `prisma` mirrors the sibling services:
+// production callers omit it and get the real singleton; tests pass a mock.
+async function searchTools({ query, status, limit = 50 }, prisma = defaultPrisma) {
   const conditions = [];
 
   // Text search: matches name OR owner (both case-insensitive substring).
